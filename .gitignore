@@ -3,6 +3,7 @@
 ### But not Git ignore and Travis file
 !.gitignore
 !.travis.yml
+!.razorops.yaml
 
 ### IntelliJ Idea
 #.idea/

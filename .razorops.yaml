@@ -1,0 +1,19 @@
+global:
+  variables:
+  - SONAR_HOST_URL=http://206.189.128.233:9000
+
+tasks:
+  download:
+    steps:
+    - checkout
+    - cache/pull: mvn-sonarqube1-{{ checksum "pom.xml" }}
+    
+    - run: mvn verify sonar:sonar -Pcoverage
+    
+    - cache/push:
+        key: mvn-sonarqube1-{{ checksum "pom.xml" }}
+        paths:
+        - ~/.m2
+        - ~/.sonar/cache
+    
+    - reports/html: target/site/jacoco
