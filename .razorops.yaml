@@ -2,7 +2,7 @@ version: v2
 
 global:
   variables:
-  - SONAR_HOST_URL=http://206.189.128.233:9000
+  - SONAR_HOST_URL=http://sonar.kubeify.com:9000
 
 tasks:
   download:
