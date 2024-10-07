@@ -2,18 +2,35 @@ version: v2
 
 global:
   variables:
-  - SONAR_HOST_URL=http://sonar.kubeify.com:9000
+  - SONAR_HOST_URL=http://0.0.0.0:9000
+  runner:
+    os_image: ubuntu
+    containers:
+    - image: docker.io/bitnami/postgresql:16
+      environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - POSTGRESQL_USERNAME=sonarqube
+      - POSTGRESQL_DATABASE=sonarqube
+    - image: bitnami/sonarqube:10.7.0
+      environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - SONARQUBE_DATABASE_HOST=postgresql
+      - SONARQUBE_DATABASE_PORT_NUMBER=5432
+      - SONARQUBE_DATABASE_USER=sonarqube
+      - SONARQUBE_DATABASE_NAME=sonarqube
 
 tasks:
   download:
     steps:
     - checkout
-    - cache/pull: mvn-sonarqube1-{{ checksum "pom.xml" }}
+    - cache/pull: mvn-sonarqube-{{ checksum "pom.xml" }}
     
-    - run: mvn verify sonar:sonar -Pcoverage
-    
+    - commands:
+      - dockerize -wait tcp://0.0.0.0:9000 -timeout 60s
+      - mvn verify sonar:sonar -Pcoverage
     - cache/push:
-        key: mvn-sonarqube1-{{ checksum "pom.xml" }}
+        key: mvn-sonarqube-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
         - ~/.sonar/cache
