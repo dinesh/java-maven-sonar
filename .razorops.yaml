@@ -15,7 +15,7 @@ global:
     - image: bitnami/sonarqube:10.7.0
       environment:
       - ALLOW_EMPTY_PASSWORD=yes
-      - SONARQUBE_DATABASE_HOST=postgresql
+      - SONARQUBE_DATABASE_HOST=0.0.0.0
       - SONARQUBE_DATABASE_PORT_NUMBER=5432
       - SONARQUBE_DATABASE_USER=sonarqube
       - SONARQUBE_DATABASE_NAME=sonarqube
@@ -27,8 +27,17 @@ tasks:
     - cache/pull: mvn-sonarqube-{{ checksum "pom.xml" }}
     
     - commands:
-      - dockerize -wait tcp://0.0.0.0:9000 -timeout 60s
+      - sudo sysctl vm.max_map_count
+      - sudo sysctl vm.max_map_count=262144
+      - dockerize -wait tcp://0.0.0.0:9000 -timeout 10m
       - mvn verify sonar:sonar -Pcoverage
+
+    # print log of services if anything fails
+    - commands:
+      - docker logs postgresql
+      - docker logs sonarqube
+      when: on_fail
+  
     - cache/push:
         key: mvn-sonarqube-{{ checksum "pom.xml" }}
         paths:
